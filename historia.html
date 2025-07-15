@@ -3,23 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nossa História - Doceria Delícia</title>
+    <title>Nossa História - nanda | doces & bolos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Links para ícone e CSS externo -->
-    <link rel="icon" href="/favicon.ico">
+    <!-- ATENÇÃO: Caminhos ajustados para relativos. Confirme a localização dos seus arquivos. -->
+    <link rel="icon" href="favicon.ico"> 
+    <meta property="og:title" content="nanda | doces & bolos - Nossa História">
+    <meta property="og:description" content="Conheça a história e a paixão por trás dos doces artesanais da nanda | doces & bolos.">
+    <meta property="og:image" content="capa.jpg"> <!-- Ajuste este caminho se 'capa.jpg' estiver em assets/img/ -->
+    <meta property="og:url" content="https://seudominio.com.br/historia.html"> <!-- Atualize para o URL real -->
     <link rel="stylesheet" href="style.css">
     
     <!-- Script de configuração do Tailwind (essencial para as cores 'primary') -->
+    <!-- Mantido aqui para garantir que as cores personalizadas carreguem imediatamente -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         primary: {
-                            50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6',
-                            500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843',
+                            50: '#ffe4f0',
+                            100: '#fbb8d5',
+                            200: '#f38fbb',
+                            300: '#ea65a0',
+                            400: '#e13b86',
+                            500: '#db2777', // rosa principal
+                            600: '#c21d6b',
+                            700: '#a7155f',
+                            800: '#8d0e53',
+                            900: '#740746',
                         }
                     }
                 }
@@ -40,10 +53,10 @@
                     <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                         <i class="fas fa-candy-cane text-primary-600 text-xl"></i>
                     </div>
-                    <span class="text-2xl font-bold hidden sm:block">Doceria Delícia</span>
+                    <span class="text-2xl font-bold hidden sm:block">nanda | doces & bolos</span>
                 </a>
                 
-                <!-- Navegação e Botão Mobile (SEM CARRINHO) -->
+                <!-- Navegação e Carrinho (COPIADO DO INDEX.HTML) -->
                 <div class="flex items-center space-x-4 sm:space-x-6">
                     <nav class="hidden md:flex items-center space-x-6">
                         <a href="index.html" class="hover:text-primary-200 transition flex items-center">
@@ -54,7 +67,50 @@
                         </a>
                     </nav>
                     
-                    <!-- Botão do menu mobile -->
+                    <!-- Botão do Carrinho -->
+                    <div class="relative">
+                        <button id="cart-btn" class="bg-primary-700 hover:bg-primary-800 px-3 py-2 sm:px-4 sm:py-2 rounded-full flex items-center transition-all duration-300 transform hover:scale-105">
+                            <i class="fas fa-shopping-cart mr-1 sm:mr-2"></i>
+                            <span id="cart-count" class="bg-yellow-400 text-primary-800 rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs sm:text-sm font-bold">0</span>
+                        </button>
+                        <div id="cart-dropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-40">
+                            <div class="p-4">
+                                <div class="flex justify-between items-center border-b pb-2">
+                                    <h3 class="font-bold text-gray-800 flex items-center">
+                                        <i class="fas fa-shopping-cart mr-2 text-primary-600"></i> Seu Carrinho
+                                    </h3>
+                                    <button id="close-cart" class="text-gray-500 hover:text-gray-700 transition">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div id="cart-items" class="max-h-96 overflow-y-auto py-2 scrollbar-hide">
+                                    <p id="empty-cart-message" class="text-gray-500 text-center py-8">
+                                        <i class="fas fa-shopping-basket text-3xl mb-3 text-gray-300"></i><br>
+                                        Seu carrinho está vazio
+                                    </p>
+                                </div>
+                                <div id="cart-footer" class="border-t pt-3 hidden">
+                                    <div class="flex justify-between mb-2 text-gray-800">
+                                        <span class="font-semibold">Total:</span>
+                                        <span id="cart-total" class="font-bold">R$ 0,00</span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="customer-name" class="block text-sm font-medium text-gray-700 mb-1">Seu Nome:</label>
+                                        <input type="text" id="customer-name" name="customer-name" 
+                                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                               placeholder="Digite seu nome para o pedido" required>
+                                        <p id="name-error" class="text-red-500 text-xs mt-1 hidden">Por favor, preencha seu nome.</p>
+                                    </div>
+                                    <button id="checkout-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg flex items-center justify-center transition-all duration-300 transform hover:scale-[1.02]">
+                                        <i class="fab fa-whatsapp mr-2"></i> Finalizar pelo WhatsApp
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menu mobile -->
                     <button id="mobile-menu-btn" class="md:hidden text-white">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
@@ -134,7 +190,7 @@
                         <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
                             <i class="fas fa-candy-cane text-primary-600 text-xl"></i>
                         </div>
-                        <h3 class="text-xl font-bold">Doceria Delícia</h3>
+                        <h3 class="text-xl font-bold">nanda | doces & bolos</h3>
                     </div>
                     <p class="text-gray-400 mb-4">
                         Confeitaria artesanal especializada em doces finos, bolos e salgados. Fazemos cada doce com ingredientes selecionados e muito amor.
@@ -149,28 +205,30 @@
                 <div>
                     <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-map-marker-alt mr-3 text-primary-500"></i> Contato</h3>
                     <ul class="space-y-2">
-                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-map-marker-alt mr-3 text-primary-500"></i>Rua dos Doces, 123 - Centro, São Paulo/SP</li>
-                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-phone-alt mr-3 text-primary-500"></i>(11) 9999-9999</li>
-                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-envelope mr-3 text-primary-500"></i>contato@doceriadelicia.com.br</li>
+                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-map-marker-alt mr-3 text-primary-500"></i>Rua 02, Quadra 66, Lote 07, Loja 03 (GALERIA VALPARAISO), jardim oriente - Valparaíso de Goiás - GO,</li>
+                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-phone-alt mr-3 text-primary-500"></i>(61) 99269-3291</li>
+                        <!-- <li class="flex items-center text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mr-3 text-primary-500"></i>contato@doceriadelicia.com.br
+                        </li> -->
                     </ul>
                 </div>
                 
                 <div>
                     <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-clock mr-3 text-primary-500"></i> Horário</h3>
                     <ul class="space-y-2 text-gray-400">
-                        <li class="flex justify-between hover:text-white transition"><span>Segunda a Sexta</span><span>08:00 - 19:00</span></li>
+                        <li class="flex justify-between hover:text-white transition"><span>Terça a Sexta</span><span>09:00 - 19:00</span></li>
                         <li class="flex justify-between hover:text-white transition"><span>Sábado</span><span>09:00 - 18:00</span></li>
                         <li class="flex justify-between hover:text-white transition"><span>Domingo</span><span>09:00 - 14:00</span></li>
-                        <li class="pt-4 mt-4 border-t border-gray-800 text-sm">
+                        <!-- <li class="pt-4 mt-4 border-t border-gray-800 text-sm">
                             <p>Entregamos em toda a região</p>
                             <p class="mt-1">Pedidos mínimos: R$ 30,00</p>
-                        </li>
+                        </li> -->
                     </ul>
                 </div>
             </div>
             
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-                <p>© 2025 Doces da Nanda. Todos os direitos reservados.</p>                
+                <p>© 2025 nanda | doces & bolos. Todos os direitos reservados.</p>                
             </div>
         </div>
     </footer>
@@ -178,19 +236,8 @@
     <!-- FIM DO FOOTER -->
     <!-- ========================================================== -->
     
-    <!-- Script para o menu mobile -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-            
-            if (mobileMenuBtn && mobileMenu) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
-                });
-            }
-        });
-    </script>
+    <!-- Script principal (contém a lógica do carrinho e do menu mobile) -->
+    <script src="script.js" defer></script>
 
 </body>
 </html>
