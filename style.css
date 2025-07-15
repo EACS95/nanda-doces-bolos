@@ -1,0 +1,109 @@
+/* ===== Estilo Botão de Categoria Ativo ===== */
+.category-btn.active {
+    background-color: #db2777;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(219, 39, 119, 0.3);
+}
+
+/* ===== Esconder Barra de Rolagem ===== */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.menu-item img {
+  width: 100%;          /* Ocupa toda a largura do container */
+  height: 200px;        /* Defina uma altura fixa adequada */
+  object-fit: contain;  /* Ajusta a imagem para caber inteira sem cortar */
+  object-position: center; /* Centraliza a imagem */
+  border-radius: 0.5rem; /* Se quiser bordas arredondadas */
+}
+
+
+/* ===== Transição Suave para Dropdown do Carrinho ===== */
+#cart-dropdown {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out, box-shadow 1.5s ease;
+}
+
+#cart-dropdown:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ===== Destaque Visual ao Adicionar Item no Carrinho ===== */
+#cart-dropdown.cart-highlight {
+    animation: highlightCart 1.5s ease forwards;
+    box-shadow: 0 0 15px 3px rgba(219, 39, 119, 0.5);
+    border: 2px solid #db2777;
+    background-color: #fff0f6;
+}
+
+@keyframes highlightCart {
+    0% {
+        background-color: #fff0f6;
+        box-shadow: 0 0 15px 3px rgba(219, 39, 119, 0.5);
+        border-color: #db2777;
+    }
+    50% {
+        background-color: #fce7f3;
+        box-shadow: 0 0 20px 5px rgba(244, 63, 94, 0.6);
+        border-color: #f43f5e;
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+        border-color: transparent;
+    }
+}
+
+/* Animação para itens em destaque */
+@keyframes pulseHighlight {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
+    }
+    70% {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 10px rgba(219, 39, 119, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
+    }
+}
+
+.highlight-item {
+    animation: pulseHighlight 2s infinite;
+}
+
+/* Efeito de hover nos cards */
+.menu-item {
+    transition: all 0.3s ease;
+}
+
+.menu-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Loader personalizado */
+.loader {
+    width: 48px;
+    height: 48px;
+    border: 5px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 5px solid #db2777;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

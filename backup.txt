@@ -1,0 +1,633 @@
+document.addEventListener('DOMContentLoaded', function() {
+  // --- CONSTANTES ---
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxWuuRqOe2EQq2y3l8mRnTx4TSUMp1Qkwydf_Uaj3y8cd8WpOWyuhn6nwxg3_HpwWDv/exec';
+  const TOKEN = 'T8#z9fL3wP@qV1mN6eXrC7aB$dY2!kGtND';
+  const CACHE_DURATION_MINUTES = 30;
+
+  // --- ELEMENTOS DO DOM ---
+  const menuGrid = document.getElementById('menu-grid');
+  const categoryFiltersContainer = document.getElementById('category-filters-container');
+  const cartBtn = document.getElementById('cart-btn');
+  const cartDropdown = document.getElementById('cart-dropdown');
+  const closeCartBtn = document.getElementById('close-cart');
+  const cartItemsContainer = document.getElementById('cart-items');
+  const emptyCartMessage = document.getElementById('empty-cart-message');
+  const cartFooter = document.getElementById('cart-footer');
+  const cartTotal = document.getElementById('cart-total');
+  const cartCount = document.getElementById('cart-count');
+  const checkoutBtn = document.getElementById('checkout-btn');
+
+  // Modal Elements
+  const confirmationModal = document.getElementById('confirmation-modal');
+  const closeModalBtn = document.getElementById('close-modal-btn');
+  const continueShoppingBtn = document.getElementById('continue-shopping-btn');
+  const checkoutModalBtn = document.getElementById('checkout-modal-btn');
+  const modalText = document.getElementById('modal-text');
+
+  // --- VARIÁVEIS DE ESTADO ---
+  let cart = {};
+  let menuData = {};
+
+  // --- INICIALIZAÇÃO ---
+  initializeApp();
+
+  function initializeApp() {
+    loadCartFromStorage();
+    setupEventListeners();
+    loadMenuWithCache();
+  }
+
+  // --- PERSISTÊNCIA E CACHE ---
+  function saveCartToStorage() {
+    localStorage.setItem('doceriaCart', JSON.stringify(cart));
+  }
+
+  function loadCartFromStorage() {
+    const s = localStorage.getItem('doceriaCart');
+    if (s) cart = JSON.parse(s);
+  }
+
+  function clearCart() {
+    cart = {};
+    updateCart();
+  }
+
+  function saveMenuToStorage(data) {
+    localStorage.setItem('doceriaMenuCache', JSON.stringify({ timestamp: Date.now(), data }));
+  }
+
+  // --- CARREGAMENTO DE CARDÁPIO COM CACHE ---
+  function loadMenuWithCache() {
+    if (!menuGrid) return;
+
+    const cachedMenu = JSON.parse(localStorage.getItem('doceriaMenuCache'));
+    const now = Date.now();
+    const CACHE_DURATION_MS = CACHE_DURATION_MINUTES * 60 * 1000;
+
+    if (cachedMenu && (now - cachedMenu.timestamp < CACHE_DURATION_MS)) {
+      menuData = cachedMenu.data;
+      renderCategoryFilters();
+      renderMenu(Object.values(menuData));
+      updateCart();
+      fetchMenuData(true); // atualização em background
+    } else {
+      fetchMenuData(false);
+    }
+  }
+
+  // --- BUSCA DE DADOS DA API ---
+  function fetchMenuData(isBackgroundFetch = false) {
+    fetch(`${API_URL}?token=${encodeURIComponent(TOKEN)}`)
+      .then(res => {
+        if (!res.ok) {
+          return res.text().then(text => { throw new Error(text || res.statusText); });
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          throw new Error("Resposta da API inválida.");
+        }
+
+        const newMenuData = {};
+        data.forEach(item => {
+          if (item.ID && item.Produto && item.Preço) {
+            newMenuData[item.ID] = item;
+          }
+        });
+
+        if (JSON.stringify(newMenuData) !== JSON.stringify(menuData)) {
+          menuData = newMenuData;
+          saveMenuToStorage(menuData);
+          renderCategoryFilters();
+          renderMenu(Object.values(menuData));
+          updateCart();
+        }
+      })
+      .catch(err => {
+        console.error("Erro ao carregar cardápio:", err.message);
+        if (!isBackgroundFetch && menuGrid) {
+          let userMessage = 'Erro ao carregar o cardápio.';
+          if (String(err.message).includes('Não autorizado')) {
+            userMessage = 'Erro de autorização. Não foi possível carregar o cardápio.';
+          }
+          menuGrid.innerHTML = `<p class="text-center col-span-full text-red-500">${userMessage}</p>`;
+        }
+      });
+  }
+
+  // --- RENDERIZAÇÃO DE FILTROS ---
+  function renderCategoryFilters() {
+    if (!categoryFiltersContainer) return;
+    const categories = [...new Set(Object.values(menuData).map(item => item.Categoria).filter(Boolean))];
+    categories.sort();
+
+    let buttonsHTML = '<button class="category-btn active bg-pink-600 text-white px-4 py-2 rounded-full transition" data-category="all">Todos</button>';
+    categories.forEach(category => {
+      buttonsHTML += `<button class="category-btn px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 transition text-gray-700" data-category="${category.toLowerCase()}">${category}</button>`;
+    });
+    categoryFiltersContainer.innerHTML = buttonsHTML;
+  }
+
+  // --- RENDERIZAÇÃO DO CARDÁPIO ---
+  function renderMenu(items) {
+    if (!menuGrid) return;
+    menuGrid.innerHTML = '';
+
+    if (items.length === 0) {
+      menuGrid.innerHTML = '<p class="text-center col-span-full text-lg text-gray-600">Nenhum item encontrado.</p>';
+      return;
+    }
+
+    items.forEach(item => {
+      if (!item.ID) return;
+      const priceNumber = parseFloat(String(item.Preço).replace("R$", "").replace(",", "."));
+      const destaque = item.Destaque ? `<span class="absolute top-2 right-2 bg-pink-600 text-white text-xs font-bold px-2 py-1 rounded-full">${item.Destaque}</span>` : '';
+
+      const menuItemHTML = `
+        <div class="menu-item bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col" data-category="${(item.Categoria || '').toLowerCase()}" data-id="${item.ID}">
+          <div class="relative">
+            <img src="${item.Imagem || 'https://via.placeholder.com/400x300.png?text=Doce+Delicia'}" alt="${item.Produto}" class="w-full h-48 object-cover">
+            ${destaque}
+          </div>
+          <div class="p-4 flex flex-col flex-grow">
+            <div class="flex justify-between items-start mb-1">
+              <h3 class="font-bold text-lg text-gray-800">${item.Produto}</h3>
+              <span class="text-pink-600 font-bold whitespace-nowrap">R$ ${priceNumber.toFixed(2).replace('.', ',')}</span>
+            </div>
+            <p class="text-gray-600 text-sm mt-1 flex-grow">${item.Descrição || ''}</p>
+            <div class="flex justify-end items-center mt-4">
+              <div class="flex items-center rounded-lg overflow-hidden shadow-sm">
+                <button class="decrease-btn bg-gray-200 px-3 py-2 leading-none hover:bg-gray-300 transition"><i class="fas fa-minus text-xs"></i></button>
+                <span class="quantity font-bold bg-white px-4 py-2 text-center w-12 border-t border-b border-gray-200">${cart[item.ID] || 0}</span>
+                <button class="increase-btn bg-pink-600 hover:bg-pink-700 text-white px-3 py-2 leading-none transition"><i class="fas fa-plus text-xs"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      menuGrid.innerHTML += menuItemHTML;
+    });
+  }
+
+  // --- EVENTOS ---
+  function setupEventListeners() {
+    if (cartBtn) cartBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      cartDropdown.classList.toggle('hidden');
+    });
+
+    if (closeCartBtn) closeCartBtn.addEventListener('click', () => cartDropdown.classList.add('hidden'));
+    if (checkoutBtn) checkoutBtn.addEventListener('click', handleCheckout);
+
+    document.addEventListener('click', e => {
+      if (cartDropdown && !cartDropdown.classList.contains('hidden') &&
+          !cartDropdown.contains(e.target) &&
+          !cartBtn.contains(e.target)) {
+        cartDropdown.classList.add('hidden');
+      }
+    });
+
+    if (categoryFiltersContainer) {
+      categoryFiltersContainer.addEventListener('click', e => {
+        const target = e.target.closest('.category-btn');
+        if (!target) return;
+
+        categoryFiltersContainer.querySelectorAll('.category-btn').forEach(btn => {
+          btn.classList.remove('active', 'bg-pink-600', 'text-white');
+          btn.classList.add('bg-gray-200', 'text-gray-700');
+        });
+
+        target.classList.add('active', 'bg-pink-600', 'text-white');
+        target.classList.remove('bg-gray-200', 'text-gray-700');
+
+        const category = target.dataset.category;
+        const allItems = Object.values(menuData);
+        const filteredItems = category === 'all' ? allItems : allItems.filter(item => (item.Categoria || '').toLowerCase() === category);
+        renderMenu(filteredItems);
+      });
+    }
+
+    if (menuGrid) menuGrid.addEventListener('click', handleMenuGridClick);
+    if (cartItemsContainer) cartItemsContainer.addEventListener('click', handleCartItemsClick);
+
+    if (confirmationModal) {
+      closeModalBtn.addEventListener('click', hideConfirmationModal);
+      continueShoppingBtn.addEventListener('click', hideConfirmationModal);
+      confirmationModal.addEventListener('click', e => {
+        if (e.target === confirmationModal) hideConfirmationModal();
+      });
+      checkoutModalBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        hideConfirmationModal();
+        if (cartDropdown) cartDropdown.classList.remove('hidden');
+      });
+    }
+  }
+
+  // --- MANIPULADORES DE CLIQUE ---
+  function handleMenuGridClick(e) {
+    const menuItemEl = e.target.closest('.menu-item');
+    if (!menuItemEl) return;
+    const id = menuItemEl.dataset.id;
+
+    if (e.target.closest('.increase-btn')) {
+      const isNewItem = !cart[id] || cart[id] === 0;
+      updateCartItem(id, 1, isNewItem);
+    } else if (e.target.closest('.decrease-btn')) {
+      updateCartItem(id, -1, false);
+    }
+  }
+
+  function handleCartItemsClick(e) {
+    const cartItemEl = e.target.closest('[data-id]');
+    if (!cartItemEl) return;
+    const id = cartItemEl.dataset.id;
+
+    if (e.target.closest('.remove-item-btn')) {
+      removeFromCart(id);
+    } else if (e.target.closest('.increase-item-btn')) {
+      updateCartItem(id, 1);
+    } else if (e.target.closest('.decrease-item-btn')) {
+      updateCartItem(id, -1);
+    }
+  }
+
+  // --- LÓGICA DO CARRINHO ---
+  function parsePrice(priceString) {
+    return parseFloat(String(priceString).replace("R$", "").replace(",", "."));
+  }
+
+  function updateCartItem(id, change, showModal = false) {
+    if (!menuData[id]) return;
+
+    let currentQuantity = cart[id] || 0;
+    currentQuantity += change;
+
+    if (currentQuantity <= 0) {
+      delete cart[id];
+    } else {
+      cart[id] = currentQuantity;
+    }
+
+    if (showModal && change > 0) {
+      showConfirmationModal(menuData[id].Produto, 1);
+    }
+
+    updateCart();
+
+    // NOVO: abrir carrinho e destacar visualmente
+    if (change > 0) {
+      if (cartDropdown.classList.contains('hidden')) {
+        cartDropdown.classList.remove('hidden');
+      }
+      cartDropdown.classList.add('cart-highlight');
+      setTimeout(() => {
+        cartDropdown.classList.remove('cart-highlight');
+      }, 1500);
+    }
+  }
+
+  function removeFromCart(id) {
+    delete cart[id];
+    updateCart();
+  }
+
+  function updateAllCardQuantities() {
+    if (!menuGrid) return;
+
+    menuGrid.querySelectorAll('.menu-item').forEach(card => {
+      const id = card.dataset.id;
+      const quantitySpan = card.querySelector('.quantity');
+      if (quantitySpan) {
+        quantitySpan.textContent = cart[id] || 0;
+      }
+    });
+  }
+
+  function updateCart() {
+    saveCartToStorage();
+
+    if (cartItemsContainer) {
+      renderCartItems();
+    }
+
+    updateAllCardQuantities();
+  }
+
+  function renderCartItems() {
+    if (!cartItemsContainer) return;
+
+    cartItemsContainer.innerHTML = '';
+
+    let total = 0;
+    let itemCount = 0;
+
+    for (const id in cart) {
+      const quantity = cart[id];
+      const itemData = menuData[id];
+      if (!itemData) continue;
+
+      const price = parsePrice(itemData.Preço);
+      const itemTotal = price * quantity;
+
+      total += itemTotal;
+      itemCount += quantity;
+
+      const cartItemEl = document.createElement('div');
+      cartItemEl.className = 'cart-item flex justify-between items-center py-2 border-b';
+      cartItemEl.dataset.id = id;
+      cartItemEl.innerHTML = `
+        <div>
+          <h4 class="font-semibold text-gray-800">${itemData.Produto}</h4>
+          <div class="flex items-center mt-1">
+            <button class="remove-item-btn text-red-500 hover:text-red-700 mr-2" title="Remover item"><i class="fas fa-trash text-xs"></i></button>
+            <button class="decrease-item-btn bg-gray-200 px-1 py-0.5 rounded-l text-gray-700"><i class="fas fa-minus text-xs"></i></button>
+            <span class="cart-item-quantity bg-gray-100 px-2 py-0.5 text-center w-8 text-gray-800">${quantity}</span>
+            <button class="increase-item-btn bg-gray-200 px-1 py-0.5 rounded-r text-gray-700"><i class="fas fa-plus text-xs"></i></button>
+          </div>
+        </div>
+        <span class="cart-item-total font-semibold text-gray-800">R$ ${itemTotal.toFixed(2).replace('.', ',')}</span>`;
+      cartItemsContainer.appendChild(cartItemEl);
+    }
+
+    if (cartTotal) cartTotal.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    if (cartCount) cartCount.textContent = itemCount;
+
+    if (emptyCartMessage && cartFooter) {
+      const hasItems = itemCount > 0;
+      emptyCartMessage.classList.toggle('hidden', hasItems);
+      cartFooter.classList.toggle('hidden', !hasItems);
+    }
+  }
+
+  // --- MODAL ---
+  function showConfirmationModal(itemName, quantity) {
+    if (!confirmationModal) return;
+    modalText.textContent = `${quantity}x ${itemName} foi adicionado ao seu carrinho.`;
+    confirmationModal.classList.remove('hidden');
+  }
+
+  function hideConfirmationModal() {
+    if (!confirmationModal) return;
+    confirmationModal.classList.add('hidden');
+  }
+
+  // --- CHECKOUT ---
+  async function handleCheckout() {
+    if (Object.keys(cart).length === 0) return;
+
+    if (checkoutBtn) {
+      checkoutBtn.disabled = true;
+      checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Salvando...';
+    }
+
+    let total = 0;
+    let whatsappMessage = 'Olá, gostaria de fazer um pedido:\n\n';
+    let orderItemsForSheet = '';
+
+    for (const id in cart) {
+      const itemData = menuData[id];
+      if (!itemData) continue;
+      const quantity = cart[id];
+      const itemTotal = parsePrice(itemData.Preço) * quantity;
+      total += itemTotal;
+      whatsappMessage += `- ${quantity}x ${itemData.Produto}: R$ ${itemTotal.toFixed(2).replace('.', ',')}\n`;
+      orderItemsForSheet += `${quantity}x ${itemData.Produto}\n`;
+    }
+
+    whatsappMessage += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
+    whatsappMessage += '\n\nPor favor, confirme o pedido e informe o endereço de entrega.';
+
+    const formData = new FormData();
+    formData.append('token', TOKEN);
+    formData.append('items', orderItemsForSheet.trim());
+    formData.append('total', `R$ ${total.toFixed(2).replace('.', ',')}`);
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: formData
+      });
+
+      console.log("Pedido enviado para a planilha.");
+
+      const encodedMessage = encodeURIComponent(whatsappMessage);
+      window.open(`https://wa.me/5561995116464?text=${encodedMessage}`, '_blank'); // Atualize com seu número
+
+      clearCart();
+      if (cartDropdown) cartDropdown.classList.add('hidden');
+
+    } catch (error) {
+      console.error('Erro ao salvar o pedido:', error);
+      alert('Houve um erro ao salvar seu pedido. Por favor, tente novamente ou entre em contato.');
+    } finally {
+      if (checkoutBtn) {
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = '<i class="fab fa-whatsapp mr-2"></i> Finalizar pelo WhatsApp';
+      }
+    }
+  }
+});
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doceria Delícia - Cardápio Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 font-sans">
+    
+    <!-- Header com Navegação -->
+    <header class="bg-gradient-to-r from-pink-500 to-pink-700 text-white shadow-lg sticky top-0 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <a href="index.html" class="text-2xl font-bold">Doceria Delícia</a>
+                
+                <!-- Navegação e Carrinho -->
+                <div class="flex items-center space-x-6">
+                    <nav class="hidden md:flex items-center space-x-6">
+                        <a href="index.html" class="hover:text-pink-200 transition font-semibold">Cardápio</a>
+                        <a href="historia.html" class="hover:text-pink-200 transition">Nossa História</a>
+                    </nav>
+                    
+                    <!-- Botão do Carrinho -->
+                    <div class="relative">
+                        <button id="cart-btn" class="bg-pink-700 hover:bg-pink-800 px-4 py-2 rounded-full flex items-center transition">
+                            <i class="fas fa-shopping-cart mr-2"></i>
+                            <span id="cart-count" class="bg-yellow-400 text-pink-800 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">0</span>
+                        </button>
+                        <div id="cart-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200">
+                            <div class="p-4">
+                                <div class="flex justify-between items-center border-b pb-2">
+                                    <h3 class="font-bold text-gray-800">Seu Carrinho</h3>
+                                    <button id="close-cart" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+                                </div>
+                                <div id="cart-items" class="max-h-96 overflow-y-auto py-2">
+                                    <p id="empty-cart-message" class="text-gray-500 text-center py-8">Seu carrinho está vazio</p>
+                                </div>
+                                <div id="cart-footer" class="border-t pt-3 hidden">
+                                    <div class="flex justify-between mb-2 text-gray-800">
+                                        <span class="font-semibold">Total:</span>
+                                        <span id="cart-total" class="font-bold">R$ 0,00</span>
+                                    </div>
+                                    <button id="checkout-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg flex items-center justify-center transition">
+                                        <i class="fab fa-whatsapp mr-2"></i> Finalizar pelo WhatsApp
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        
+        <!-- Chamada para a página de história -->
+        <section class="mb-12 bg-white rounded-xl shadow-md p-8 text-center">
+            <h2 class="text-3xl font-bold text-pink-600 mb-3">Confeitaria com Amor e Tradição</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto mb-6">
+                Somos apaixonados por criar doces que contam histórias. Quer saber mais sobre nós e como tudo começou?
+            </p>
+            <a href="historia.html" class="bg-pink-100 hover:bg-pink-200 text-pink-700 font-bold py-2 px-5 rounded-full transition-transform hover:scale-105 inline-block">
+                Conheça Nossa História
+            </a>
+        </section>
+
+        <!-- Category Filter -->
+ <!-- Category Filter -->
+<div class="flex overflow-x-auto pb-4 mb-6 scrollbar-hide">
+    <div id="category-filters-container" class="flex space-x-2">
+        <!-- Botões de categoria serão inseridos aqui pelo JavaScript -->
+    </div>
+</div>
+
+        <!-- ONDE OS PRODUTOS VÃO APARECER -->
+        <section id="menu" class="mb-12">
+            <h2 class="text-center text-3xl font-bold text-gray-800 mb-8">Nosso Cardápio</h2>
+<div id="menu-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <!-- Placeholder de Carregamento Estático -->
+    <div class="col-span-full flex flex-col items-center justify-center p-8 text-gray-500">
+        <i class="fas fa-spinner fa-spin fa-3x mb-4"></i>
+        <p class="text-lg">Carregando nosso delicioso cardápio...</p>
+    </div>
+</div>
+        </section>
+      
+    </main>
+
+    <!-- Floating WhatsApp Button -->
+    <div class="fixed bottom-6 right-6 z-20">
+        <a href="https://wa.me/5561995116464" target="_blank" class="bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110">
+            <i class="fab fa-whatsapp text-2xl"></i>
+        </a>
+    </div>
+
+     
+
+    <!-- Footer -->
+ <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Doceria Delícia</h3>
+                    <p class="text-gray-400 mb-4">
+                        Confeitaria artesanal especializada em doces finos, bolos e salgados.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-whatsapp text-xl"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Contato</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center text-gray-400"><i class="fas fa-map-marker-alt mr-3"></i>Rua dos Doces, 123 - Centro, São Paulo/SP</li>
+                        <li class="flex items-center text-gray-400"><i class="fas fa-phone-alt mr-3"></i>(11) 9999-9999</li>
+                        <li class="flex items-center text-gray-400"><i class="fas fa-envelope mr-3"></i>contato@doceriadelicia.com.br</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4">Horário de Funcionamento</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex justify-between"><span>Segunda a Sexta</span><span>08:00 - 19:00</span></li>
+                        <li class="flex justify-between"><span>Sábado</span><span>09:00 - 18:00</span></li>
+                        <li class="flex justify-between"><span>Domingo</span><span>09:00 - 14:00</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>© 2023 Doceria Delícia. Todos os direitos reservados.</p>
+                <p class="mt-2 text-sm">CNPJ: 12.345.678/0001-99</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
+
+
+/* ===== Estilo Botão de Categoria Ativo ===== */
+.category-btn.active {
+    background-color: #db2777; /* pink-600 */
+    color: white;
+}
+
+/* ===== Esconder Barra de Rolagem ===== */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== Transição Suave para Dropdown do Carrinho ===== */
+#cart-dropdown {
+    /* Estado inicial (escondido) */
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition: opacity 300ms ease-in-out, transform 300ms ease-in-out, box-shadow 1.5s ease;
+}
+
+#cart-dropdown:not(.hidden) {
+    /* Estado final (visível) */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* ===== Destaque Visual ao Adicionar Item no Carrinho ===== */
+#cart-dropdown.cart-highlight {
+    animation: highlightCart 1.5s ease forwards;
+    box-shadow: 0 0 15px 3px #db2777; /* pink-600 */
+    border: 2px solid #db2777;
+    background-color: #fff0f6;
+}
+
+@keyframes highlightCart {
+    0% {
+        background-color: #fff0f6;
+        box-shadow: 0 0 15px 3px #db2777;
+        border-color: #db2777;
+    }
+    50% {
+        background-color: #fce7f3;
+        box-shadow: 0 0 20px 5px #f43f5e;
+        border-color: #f43f5e;
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+        border-color: transparent;
+    }
+}
+

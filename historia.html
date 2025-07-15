@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nossa História - Doceria Delícia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Links para ícone e CSS externo -->
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Script de configuração do Tailwind (essencial para as cores 'primary') -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#fdf2f8', 100: '#fce7f3', 200: '#fbcfe8', 300: '#f9a8d4', 400: '#f472b6',
+                            500: '#ec4899', 600: '#db2777', 700: '#be185d', 800: '#9d174d', 900: '#831843',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans antialiased">
+    
+    <!-- ========================================================== -->
+    <!-- INÍCIO: HEADER REUTILIZADO DO INDEX.HTML -->
+    <!-- ========================================================== -->
+    <header class="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg sticky top-0 z-30">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <a href="index.html" class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                        <i class="fas fa-candy-cane text-primary-600 text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold hidden sm:block">Doceria Delícia</span>
+                </a>
+                
+                <!-- Navegação e Botão Mobile (SEM CARRINHO) -->
+                <div class="flex items-center space-x-4 sm:space-x-6">
+                    <nav class="hidden md:flex items-center space-x-6">
+                        <a href="index.html" class="hover:text-primary-200 transition flex items-center">
+                            <i class="fas fa-utensils mr-2"></i> Cardápio
+                        </a>
+                        <a href="historia.html" class="hover:text-primary-200 transition font-semibold flex items-center text-yellow-300">
+                            <i class="fas fa-book-open mr-2"></i> Nossa História
+                        </a>
+                    </nav>
+                    
+                    <!-- Botão do menu mobile -->
+                    <button id="mobile-menu-btn" class="md:hidden text-white">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Menu mobile dropdown -->
+            <div id="mobile-menu" class="hidden md:hidden bg-primary-700 mt-2 py-2 rounded-lg">
+                <nav class="flex flex-col space-y-2 px-4">
+                    <a href="index.html" class="hover:text-primary-200 transition font-semibold flex items-center py-2">
+                        <i class="fas fa-utensils mr-3"></i> Cardápio
+                    </a>
+                    <a href="historia.html" class="hover:text-primary-200 transition flex items-center py-2 text-yellow-300">
+                        <i class="fas fa-book-open mr-3"></i> Nossa História
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    <!-- ========================================================== -->
+    <!-- FIM DO HEADER -->
+    <!-- ========================================================== -->
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-16">
+        <section class="bg-white rounded-xl shadow-md p-8 md:p-12 max-w-4xl mx-auto">
+            <h2 class="text-4xl font-bold text-primary-600 mb-6 text-center">Nossa História</h2>
+            <div class="md:flex items-center gap-8">
+                <div class="md:w-1/2 mb-6 md:mb-0">
+                    <p class="text-gray-700 text-lg mb-4 leading-relaxed">
+                        A Doceria Delícia nasceu da paixão por doces finos e confeitaria artesanal. 
+                        Desde 2010, entregamos produtos de alta qualidade feitos com ingredientes 
+                        selecionados e muito carinho.
+                    </p>
+                    <p class="text-gray-700 text-lg mb-6 leading-relaxed">
+                        Nossos produtos são preparados diariamente para garantir frescor e sabor 
+                        inigualáveis. Cada receita é um pedaço do nosso amor pela confeitaria.
+                    </p>
+                    <div class="flex space-x-4 justify-center md:justify-start">
+                        <div class="bg-primary-50 p-4 rounded-lg text-center">
+                            <i class="fas fa-award text-primary-600 text-3xl mb-2"></i>
+                            <p class="font-semibold text-gray-700">Qualidade</p>
+                        </div>
+                        <div class="bg-primary-50 p-4 rounded-lg text-center">
+                            <i class="fas fa-heart text-primary-600 text-3xl mb-2"></i>
+                            <p class="font-semibold text-gray-700">Amor</p>
+                        </div>
+                        <div class="bg-primary-50 p-4 rounded-lg text-center">
+                            <i class="fas fa-leaf text-primary-600 text-3xl mb-2"></i>
+                            <p class="font-semibold text-gray-700">Frescor</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-1/2 flex justify-center">
+                    <img src="https://images.unsplash.com/photo-1603532648955-039310d9ed75?auto=format&fit=crop" 
+                         alt="Confeiteira trabalhando" 
+                         class="w-full max-w-sm rounded-lg shadow-md object-cover h-96">
+                </div>
+            </div>
+            <div class="text-center mt-12">
+                <a href="index.html" class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-lg transition-transform hover:scale-105 inline-flex items-center">
+                    <i class="fas fa-utensils mr-2"></i>
+                    Ver Cardápio
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- ========================================================== -->
+    <!-- INÍCIO: FOOTER REUTILIZADO DO INDEX.HTML -->
+    <!-- ========================================================== -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-candy-cane text-primary-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">Doceria Delícia</h3>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Confeitaria artesanal especializada em doces finos, bolos e salgados. Fazemos cada doce com ingredientes selecionados e muito amor.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110"><i class="fab fa-facebook-f text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110"><i class="fab fa-instagram text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition transform hover:scale-110"><i class="fab fa-whatsapp text-xl"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-map-marker-alt mr-3 text-primary-500"></i> Contato</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-map-marker-alt mr-3 text-primary-500"></i>Rua dos Doces, 123 - Centro, São Paulo/SP</li>
+                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-phone-alt mr-3 text-primary-500"></i>(11) 9999-9999</li>
+                        <li class="flex items-center text-gray-400 hover:text-white transition"><i class="fas fa-envelope mr-3 text-primary-500"></i>contato@doceriadelicia.com.br</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-clock mr-3 text-primary-500"></i> Horário</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li class="flex justify-between hover:text-white transition"><span>Segunda a Sexta</span><span>08:00 - 19:00</span></li>
+                        <li class="flex justify-between hover:text-white transition"><span>Sábado</span><span>09:00 - 18:00</span></li>
+                        <li class="flex justify-between hover:text-white transition"><span>Domingo</span><span>09:00 - 14:00</span></li>
+                        <li class="pt-4 mt-4 border-t border-gray-800 text-sm">
+                            <p>Entregamos em toda a região</p>
+                            <p class="mt-1">Pedidos mínimos: R$ 30,00</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <p>© 2025 Doces da Nanda. Todos os direitos reservados.</p>                
+            </div>
+        </div>
+    </footer>
+    <!-- ========================================================== -->
+    <!-- FIM DO FOOTER -->
+    <!-- ========================================================== -->
+    
+    <!-- Script para o menu mobile -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
