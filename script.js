@@ -28,8 +28,14 @@ tailwind.config = {
 // Lógica principal da aplicação
 document.addEventListener('DOMContentLoaded', function() {
     // --- CONSTANTES ---
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyon_QS9DVBlWYpY2kAPPfGDiCiMdHXZY5EUWCi9LdBdnRcEbaZJdhoNyHdQ5mRLccj/exec';
-    const TOKEN = 'T8#z9fL3wP@qV1mN6eXrC7aB$dY2!kGtND';
+    // REMOVIDO: A API_URL e o TOKEN agora são gerenciados pela função Netlify no backend
+    // const API_URL = 'https://script.google.com/macros/s/AKfycbyon_QS9DVBlWYpY2kAPPfGDiCiMdHXZY5EUWCi9LdBdnRcEbaZJdhoNyHdQ5mRLccj/exec';
+    // const TOKEN = 'T8#z9fL3wP@qV1mN6eXrC7aB$dY2!kGtND';
+    
+    // NOVA CONSTANTE: A URL para sua função Netlify. 
+    // Ela vai encaminhar as requisições para a API real, adicionando o token de forma segura.
+    const API_PROXY_URL = '/.netlify/functions/menu-api'; 
+
     const CACHE_DURATION_MINUTES = 30;
     
     // --- ELEMENTOS DO DOM ---
@@ -112,7 +118,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // --- BUSCA DE DADOS DA API ---
     function fetchMenuData(isBackgroundFetch = false) {
-        fetch(`${API_URL}?token=${encodeURIComponent(TOKEN)}`)
+        // AGORA: Chamamos a API_PROXY_URL, que é sua função Netlify.
+        // O token é adicionado DENTRO da função Netlify, não aqui no frontend.
+        fetch(API_PROXY_URL) 
             .then(res => {
                 if (!res.ok) {
                     return res.text().then(text => { throw new Error(text || res.statusText); });
@@ -143,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error("Erro ao carregar cardápio:", err.message);
                 if (!isBackgroundFetch && menuGrid) {
                     let userMessage = 'Erro ao carregar o cardápio.';
+                    // A mensagem de erro de "Não autorizado" viria do seu Google Apps Script via proxy
                     if (String(err.message).includes('Não autorizado')) {
                         userMessage = 'Erro de autorização. Não foi possível carregar o cardápio.';
                     }
@@ -604,103 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmationModal.classList.add('hidden');
     }
     
- 
-// --- CHECKOUT (VERSÃO MELHORADA) ---
-// async function handleCheckout() {
-//     if (Object.keys(cart).length === 0) return;
-    
-//     if (checkoutBtn) {
-//         checkoutBtn.disabled = true;
-//         checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Salvando...';
-//     }
-    
-//     let total = 0;
-//     let whatsappMessage = 'Olá, gostaria de fazer um pedido:\n\n';
-    
-//     // ESTA É A GRANDE MUDANÇA: Criamos um array de objetos para os itens
-//     let orderItemsForSheet = []; 
-    
-//     for (const id in cart) {
-//         const itemData = menuData[id];
-//         if (!itemData) continue;
-        
-//         const quantity = cart[id];
-//         const price = parsePrice(itemData.Preço);
-//         const itemTotal = price * quantity;
-        
-//         total += itemTotal;
-        
-//         // Formata a mensagem do WhatsApp (continua igual)
-//         whatsappMessage += `- ${quantity}x ${itemData.Produto}: R$ ${itemTotal.toFixed(2).replace('.', ',')}\n`;
-        
-//         // Adiciona o item ao nosso array estruturado
-//         orderItemsForSheet.push({
-//             id: itemData.ID,
-//             name: itemData.Produto,
-//             quantity: quantity,
-//             price: price.toFixed(2).replace('.', ',') // Envia o preço unitário formatado
-//         });
-//     }
-    
-//     whatsappMessage += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
-//     whatsappMessage += '\n\nPor favor, confirme o pedido e informe o endereço de entrega.';
-    
-//     const formData = new FormData();
-//     formData.append('token', TOKEN);
-    
-//     // A MÁGICA ACONTECE AQUI: Convertemos o array de objetos para uma string JSON
-//     formData.append('items', JSON.stringify(orderItemsForSheet));
-    
-//     formData.append('total', `R$ ${total.toFixed(2).replace('.', ',')}`);
-    
-//     try {
-//         const response = await fetch(API_URL, {
-//             method: 'POST',
-//             body: formData
-//         });
-
-//         // Verificamos se a resposta da API foi bem-sucedida
-//         const result = await response.json();
-//         if (result.status !== 'success') {
-//             throw new Error(result.message || "A API retornou um erro.");
-//         }
-        
-//         console.log("Pedido enviado para a planilha com sucesso. ID do Pedido:", result.orderId);
-        
-//         const encodedMessage = encodeURIComponent(whatsappMessage);
-//         window.open(`https://wa.me/5561995116464?text=${encodedMessage}`, '_blank');
-        
-//         clearCart();
-//         if (cartDropdown) cartDropdown.classList.add('hidden');
-        
-//     } catch (error) {
-//         console.error('Erro ao salvar o pedido:', error);
-        
-//         // Mostra mensagem de erro bonita
-//         const errorDiv = document.createElement('div');
-//         errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50';
-//         errorDiv.innerHTML = `
-//             <i class="fas fa-exclamation-circle mr-2"></i>
-//             <span>Erro ao salvar pedido. Tente novamente.</span>
-//             <button class="ml-4" onclick="this.parentElement.remove()">
-//                 <i class="fas fa-times"></i>
-//             </button>`;
-        
-//         document.body.appendChild(errorDiv);
-        
-//         setTimeout(() => {
-//             errorDiv.remove();
-//         }, 5000);
-        
-//     } finally {
-//         if (checkoutBtn) {
-//             checkoutBtn.disabled = false;
-//             checkoutBtn.innerHTML = '<i class="fab fa-whatsapp mr-2"></i> Finalizar pelo WhatsApp';
-//         }
-//     }
-// }
-
-// --- CHECKOUT (VERSÃO ATUALIZADA COM NOME DO CLIENTE) ---
+// --- CHECKOUT (VERSÃO ATUALIZADA PARA USAR A FUNÇÃO NETLIFY) ---
 async function handleCheckout() {
     // 1. Pegar o campo de nome e a mensagem de erro
     const customerNameInput = document.getElementById('customer-name');
@@ -742,9 +655,8 @@ async function handleCheckout() {
         
         total += itemTotal;
         
-                whatsappMessage += `- *${quantity}x ${itemData.Produto}*: R$ ${itemTotal.toFixed(2).replace('.', ',')}\n`;
+        whatsappMessage += `- *${quantity}x ${itemData.Produto}*: R$ ${itemTotal.toFixed(2).replace('.', ',')}\n`;
 
-        
         orderItemsForSheet.push({
             id: itemData.ID,
             name: itemData.Produto,
@@ -756,20 +668,22 @@ async function handleCheckout() {
     whatsappMessage += `\n*Total: R$ ${total.toFixed(2).replace('.', ',')}*`;
     whatsappMessage += '\n\nPor favor, confirme o pedido e informe o endereço de entrega.';
     
-    const formData = new FormData();
-    formData.append('token', TOKEN);
+    // 4. Preparar os dados para enviar à função Netlify (como JSON)
+    // O token não é enviado daqui, ele está seguro na função Netlify.
+    const requestDataForProxy = {
+        customerName: customerName,
+        items: orderItemsForSheet, // Já é um array de objetos, será stringificado para JSON
+        total: `R$ ${total.toFixed(2).replace('.', ',')}`
+    };
     
-    // 4. Enviar o nome do cliente para a API
-    formData.append('customerName', customerName); 
-    
-    formData.append('items', JSON.stringify(orderItemsForSheet));
-    formData.append('total', `R$ ${total.toFixed(2).replace('.', ',')}`);
-    
-    // O resto da função continua exatamente igual...
     try {
-        const response = await fetch(API_URL, {
+        // AGORA: A requisição POST é feita para a API_PROXY_URL (sua função Netlify)
+        const response = await fetch(API_PROXY_URL, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json' // Indicamos que estamos enviando JSON
+            },
+            body: JSON.stringify(requestDataForProxy) // Convertemos o objeto JavaScript em uma string JSON
         });
 
         const result = await response.json();
@@ -788,7 +702,23 @@ async function handleCheckout() {
         
     } catch (error) {
         console.error('Erro ao salvar o pedido:', error);
-        // ... (código de mostrar erro)
+        
+        // Mostra mensagem de erro bonita
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center z-50';
+        errorDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span>Erro ao salvar pedido. Tente novamente.</span>
+            <button class="ml-4" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>`;
+        
+        document.body.appendChild(errorDiv);
+        
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 5000);
+        
     } finally {
         if (checkoutBtn) {
             checkoutBtn.disabled = false;
