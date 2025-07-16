@@ -1,0 +1,23 @@
+{
+  "name": "nanda-doces-bolos",
+  "version": "1.0.0",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EACS95/nanda-doces-bolos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EACS95/nanda-doces-bolos/issues"
+  },
+  "homepage": "https://github.com/EACS95/nanda-doces-bolos#readme",
+  "description": "",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
+}
